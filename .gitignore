@@ -1,0 +1,58 @@
+# .NET build folders
+**/bin/
+**/obj/
+
+# User-specific files
+*.user
+*.suo
+*.rsuser
+*.userosscache
+*.sln.docstates
+
+# VS / Rider / VS Code
+*.vs/
+.idea/
+.vscode/
+
+# Build Results
+*.dll
+*.exe
+*.app
+*.so
+*.dylib
+*.lib
+*.pdb
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+*.lock
+*.manifest
+*.nupkg
+*.swp
+*.bak
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+
+# Logs
+*.log
+
+# Secrets / local environment
+*.env
+
+# Docker
+docker-compose.override.yml
+docker-compose.override.yaml
+
+# Test results
+TestResults/
+*.trx
+
+# OS generated files
+.DS_Store
+Thumbs.db
