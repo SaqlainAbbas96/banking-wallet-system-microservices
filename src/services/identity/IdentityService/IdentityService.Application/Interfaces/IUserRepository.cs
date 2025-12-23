@@ -6,5 +6,6 @@ namespace IdentityService.Application.Interfaces
     {
         Task AddUserAsync(User user);
         Task<User?> GetByEmailAsync(string email);
+        Task<bool> ExistsByEmailAsync(string email);
     }
 }

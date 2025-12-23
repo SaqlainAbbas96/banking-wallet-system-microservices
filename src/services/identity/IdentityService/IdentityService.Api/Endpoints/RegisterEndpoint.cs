@@ -9,8 +9,8 @@ namespace IdentityService.Api.Endpoints
         {
             app.MapPost("/auth/register", async (RegisterUserDto dto, RegisterUser registerUser) =>
             {
-                var user = await registerUser.HandleAsync(dto);
-                return Results.Ok(new { user.Id, user.Email });
+                var result = await registerUser.HandleAsync(dto);
+                return result.Success ? Results.Ok(result) : Results.BadRequest(result);
             })
                 .WithName("RegisterUser")
                 .WithTags("Auth");

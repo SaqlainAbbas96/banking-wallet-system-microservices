@@ -24,5 +24,10 @@ namespace IdentityService.Infrastructure.Repositories
         {
             return await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
+
+        public async Task<bool> ExistsByEmailAsync(string email)
+        {
+            return await _dbContext.Users.AnyAsync(u => u.Email == email);
+        }
     }
 }
