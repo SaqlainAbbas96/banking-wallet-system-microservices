@@ -1,6 +1,7 @@
-﻿using IdentityService.Domain.Entities;
-using Microsoft.Extensions.Configuration;
+﻿using IdentityService.Application.Auth;
 using IdentityService.Application.Interfaces;
+using IdentityService.Domain.Entities;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -17,9 +18,12 @@ namespace IdentityService.Infrastructure.Security
             _configuration = configuration;
         }
 
-        public string GenerateToken(User user)
+        public TokenResult GenerateToken(User user)
         {
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Secret"]);
+            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Secret"]!);
+
+            var expiresAt = DateTime.UtcNow.AddMinutes(30);
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
@@ -27,13 +31,17 @@ namespace IdentityService.Infrastructure.Security
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email)
             }),
-                Expires = DateTime.UtcNow.AddMinutes(30),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                Expires = expiresAt,
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(key), 
+                    SecurityAlgorithms.HmacSha256Signature)
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            var securityToken = tokenHandler.CreateToken(tokenDescriptor);
+            var jwt = tokenHandler.WriteToken(securityToken);
+
+            return new TokenResult(jwt, expiresAt);
         }
     }
 }

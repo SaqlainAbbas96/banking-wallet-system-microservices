@@ -21,6 +21,7 @@ namespace IdentityService.Api
 
             // Application services (use cases)
             services.AddScoped<RegisterUser>();
+            services.AddScoped<LoginUser>();
 
             return services;
         }

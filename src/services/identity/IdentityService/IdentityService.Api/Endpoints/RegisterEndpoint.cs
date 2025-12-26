@@ -1,4 +1,4 @@
-﻿using IdentityService.Application;
+﻿using IdentityService.Application.Dtos;
 using IdentityService.Application.Auth;
 
 namespace IdentityService.Api.Endpoints
