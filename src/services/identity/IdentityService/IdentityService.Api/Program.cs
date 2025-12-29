@@ -1,6 +1,9 @@
 using IdentityService.Api;
 using IdentityService.Api.Endpoints;
+using IdentityService.Api.Infrastructure.Correlation;
+using IdentityService.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using OpenTelemetry.Metrics;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,16 +33,43 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+// Health Checks
+builder.Services.AddHealthChecks()
+    .AddNpgSql(builder.Configuration.GetConnectionString("IdentityDb")!);
+
+// OpenTelemetry Metrics
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(metrics =>
+    {
+        metrics
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddPrometheusExporter();
+    });
+
 var app = builder.Build();
 
+// Database Migration
+using (var scope = app.Services.CreateScope()) 
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+    dbContext.Database.Migrate();
+}
+
 // Middleware
+app.UseMiddleware<CorrelationIdMiddleware>();
+
 app.UseSerilogRequestLogging();
+
 app.UseSwagger();
 app.UseSwaggerUI();
-app.UseHttpsRedirection();
 
+app.UseHttpsRedirection();
+ 
 // Map endpoints
-app.MapRegisterEndpoints();
-app.MapLoginEndpoints();
+app.MapHealthChecks("/health");
+app.MapPrometheusScrapingEndpoint();
+
+app.MapAuthEndpoints();
 
 app.Run();
