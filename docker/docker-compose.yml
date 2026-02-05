@@ -1,5 +1,5 @@
 services:
-  postgres:
+  identity-postgres:
     image: postgres:16
     container_name: identity-postgres
     environment:
@@ -9,7 +9,24 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - identity_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+
+  wallet-postgres:
+    image: postgres:16
+    container_name: wallet-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Postgres123.
+      POSTGRES_DB: wallet
+    ports:
+      - "5434:5432"
+    volumes:
+      - wallet_postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -23,13 +40,30 @@ services:
     container_name: identity-api
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__IdentityDb=Host=localhost;Port=5433;Database=identity;Username=postgres;Password=Postgres123.
+      - ConnectionStrings__IdentityDb=Host=identity-postgres;Port=5432;Database=identity;Username=postgres;Password=Postgres123.
       - Jwt__Secret=YourSuperSecretKey123!
     depends_on:
-      postgres:
+      identity-postgres:
         condition: service_healthy
     ports:
       - "5000:80"
 
+  wallet-api:
+    build:
+      context: ..
+      dockerfile: src/services/wallet/WalletService/WalletService.Api/Dockerfile
+    container_name: wallet-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__WalletDb=Host=wallet-postgres;Port=5432;Database=wallet;Username=postgres;Password=Postgres123.
+      - Jwt__Issuer=identity-service
+      - Jwt__Audience=banking-wallet-system
+    depends_on:
+      wallet-postgres:
+        condition: service_healthy
+    ports:
+      - "5003:80"
+
 volumes:
-  postgres_data:
+  identity_postgres_data:
+  wallet_postgres_data:
