@@ -1,4 +1,4 @@
-﻿using IdentityService.Application.Auth;
+﻿using IdentityService.Application.Common;
 using IdentityService.Domain.Entities;
 
 namespace IdentityService.Application.Interfaces

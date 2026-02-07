@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
-using IdentityService.Application.Auth;
 using IdentityService.Application.Dtos;
 using IdentityService.Application.Interfaces;
+using IdentityService.Application.UseCases;
 using IdentityService.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -12,9 +12,9 @@ public class RegisterUserTests
 {
     private readonly Mock<IUserRepository> _userRepoMock = new();
     private readonly Mock<IPasswordHasher> _hasherMock = new();
-    private readonly Mock<ILogger<RegisterUser>> _loggerMock = new();
+    private readonly Mock<ILogger<RegisterUserUseCase>> _loggerMock = new();
 
-    private RegisterUser CreateService() => new(_userRepoMock.Object, _hasherMock.Object, _loggerMock.Object);
+    private RegisterUserUseCase CreateService() => new(_userRepoMock.Object, _hasherMock.Object, _loggerMock.Object);
 
     [Fact]
     public async Task Should_RegisterUser_When_ValidInput()
@@ -29,11 +29,11 @@ public class RegisterUserTests
         var service = CreateService();
 
         // Act
-        var result = await service.HandleAsync(dto);
+        var result = await service.ExecuteAsync(dto);
 
         // Assert
-        result.Success.Should().BeTrue();
-        result.Data!.Email.Should().Be(dto.Email);
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.Email.Should().Be(dto.Email);
         _userRepoMock.Verify(x => x.AddUserAsync(It.IsAny<User>()), Times.Once);
     }
 
@@ -45,10 +45,10 @@ public class RegisterUserTests
                          .ReturnsAsync(true);
 
         var service = CreateService();
-        var result = await service.HandleAsync(dto);
+        var result = await service.ExecuteAsync(dto);
 
-        result.Success.Should().BeFalse();
-        result.Errors.Should().Contain("Email already exists.");
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Contain("Email already exists.");
         _userRepoMock.Verify(x => x.AddUserAsync(It.IsAny<User>()), Times.Never);
     }
 }

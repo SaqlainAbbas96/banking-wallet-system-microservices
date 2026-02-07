@@ -1,4 +1,4 @@
-﻿using IdentityService.Application.Auth;
+﻿using IdentityService.Application.Common;
 using IdentityService.Application.Interfaces;
 using IdentityService.Domain.Entities;
 using Microsoft.Extensions.Configuration;
@@ -20,7 +20,7 @@ namespace IdentityService.Infrastructure.Security
 
         public TokenResult GenerateToken(User user)
         {
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Secret"]!);
+            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Secret"]!);
 
             var expiresAt = DateTime.UtcNow.AddMinutes(30);
 
@@ -28,13 +28,16 @@ namespace IdentityService.Infrastructure.Security
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email)
-            }),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                    new Claim(JwtRegisteredClaimNames.Email, user.Email)
+                }),
                 Expires = expiresAt,
+                Issuer = _configuration["Jwt:Issuer"],
+                Audience = _configuration["Jwt:Audience"],
                 SigningCredentials = new SigningCredentials(
-                    new SymmetricSecurityKey(key), 
-                    SecurityAlgorithms.HmacSha256Signature)
+                    new SymmetricSecurityKey(key),
+                    SecurityAlgorithms.HmacSha256)
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();
