@@ -1,0 +1,37 @@
+name: Wallet Service CI
+
+on:
+  push:
+    paths:
+      - "src/services/wallet/**"
+      - "tests/wallet/**"
+      - ".github/workflows/wallet-service-ci.yml"
+  pull_request:
+    paths:
+      - "src/services/wallet/**"
+      - "tests/wallet/**"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore dependencies
+        run: dotnet restore BankingWalletSystem.sln
+
+      - name: Build
+        run: dotnet build BankingWalletSystem.sln --no-restore --configuration Release
+
+      - name: Run Unit Tests
+        run: |
+          dotnet test tests/wallet/WalletService.UnitTests/WalletService.UnitTests.csproj \
+          --no-build \
+          --configuration Release
