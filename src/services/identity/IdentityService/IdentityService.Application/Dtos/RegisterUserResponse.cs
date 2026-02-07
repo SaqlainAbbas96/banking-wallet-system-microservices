@@ -1,7 +1,8 @@
 ﻿namespace IdentityService.Application.Dtos;
 
-public record RegisterUserResponse(
-    Guid Id,
-    string Email,
-    DateTime CreatedAt
-);
+public class RegisterUserResponse
+{
+    public Guid Id { get; set; }
+    public string Email { get; set; }
+    public DateTime CreatedAt { get; set; }
+}

@@ -5,7 +5,7 @@
         public const string Service = "identity";
         public const string Version = "v1";
 
-        public static class Auth
+        public static class Authentication
         {
             private const string Base = $"/{Service}/{Version}/auth";
             public const string Register = $"{Base}/register";
