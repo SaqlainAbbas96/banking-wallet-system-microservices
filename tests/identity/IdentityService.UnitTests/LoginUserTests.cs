@@ -1,7 +1,8 @@
 ﻿using FluentAssertions;
-using IdentityService.Application.Auth;
+using IdentityService.Application.Common;
 using IdentityService.Application.Dtos;
 using IdentityService.Application.Interfaces;
+using IdentityService.Application.UseCases;
 using IdentityService.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -13,9 +14,9 @@ namespace IdentityService.UnitTests
         private readonly Mock<IUserRepository> _userRepoMock = new();
         private readonly Mock<IPasswordHasher> _hasherMock = new();
         private readonly Mock<ITokenService> _tokenServiceMock = new();
-        private readonly Mock<ILogger<LoginUser>> _loggerMock = new();
+        private readonly Mock<ILogger<LoginUserUseCase>> _loggerMock = new();
 
-        private LoginUser CreateService() => new(_userRepoMock.Object, _hasherMock.Object, _tokenServiceMock.Object, _loggerMock.Object);
+        private LoginUserUseCase CreateService() => new(_userRepoMock.Object, _hasherMock.Object, _tokenServiceMock.Object, _loggerMock.Object);
 
         [Fact]
         public async Task Should_LoginUser_When_ValidCredentials()
@@ -28,11 +29,11 @@ namespace IdentityService.UnitTests
 
 
             var service = CreateService();
-            var result = await service.HandleAsync(dto);
+            var result = await service.ExecuteAsync(dto);
 
-            result.Success.Should().BeTrue();
-            result.Data!.AccessToken.Should().Be("jwt123");
-            result.Data!.ExpiresAt.Should().BeCloseTo(DateTime.UtcNow.AddMinutes(30), TimeSpan.FromSeconds(5));
+            result.IsSuccess.Should().BeTrue();
+            result.Value!.AccessToken.Should().Be("jwt123");
+            result.Value!.ExpiresAt.Should().BeCloseTo(DateTime.UtcNow.AddMinutes(30), TimeSpan.FromSeconds(5));
         }
 
         [Fact]
@@ -42,10 +43,10 @@ namespace IdentityService.UnitTests
             _userRepoMock.Setup(x => x.GetByEmailAsync(dto.Email)).ReturnsAsync((User?)null);
 
             var service = CreateService();
-            var result = await service.HandleAsync(dto);
+            var result = await service.ExecuteAsync(dto);
 
-            result.Success.Should().BeFalse();
-            result.Errors.Should().Contain("Invalid email or password.");
+            result.IsSuccess.Should().BeFalse();
+            result.Error.Should().Contain("Invalid email or password.");
         }
     }
 }

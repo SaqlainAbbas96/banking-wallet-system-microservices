@@ -1,6 +1,7 @@
 ﻿namespace IdentityService.Application.Dtos;
 
-public record LoginUserResponse(
-    string AccessToken,
-    DateTime ExpiresAt
-);
+public class LoginUserResponse
+{
+    public string AccessToken { get; set; }
+    public DateTime ExpiresAt { get; set; }
+}

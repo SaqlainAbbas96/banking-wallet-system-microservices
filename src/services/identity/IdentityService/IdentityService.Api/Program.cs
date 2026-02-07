@@ -1,6 +1,7 @@
-using IdentityService.Api;
 using IdentityService.Api.Endpoints;
 using IdentityService.Api.Infrastructure.Correlation;
+using IdentityService.Application;
+using IdentityService.Infrastructure;
 using IdentityService.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Metrics;
@@ -20,8 +21,6 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .Enrich.WithThreadId();
 });
 
-// Add services (DI)
-builder.Services.AddIdentityDependencies(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -47,6 +46,10 @@ builder.Services.AddOpenTelemetry()
             .AddPrometheusExporter();
     });
 
+// Dependency Injection
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddApplication();
+
 var app = builder.Build();
 
 // Database Migration
@@ -70,6 +73,6 @@ app.UseHttpsRedirection();
 app.MapHealthChecks("/health");
 app.MapPrometheusScrapingEndpoint();
 
-app.MapAuthEndpoints();
+app.MapAuthenticationEndpoints();
 
 app.Run();
